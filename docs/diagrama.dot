@@ -1,0 +1,62 @@
+digraph HamburgueriaV4 {
+  graph [rankdir=LR, bgcolor="white", fontsize=18, fontname="Arial", label="Hamburgueria - Organização por Domínio e Padrões GoF", labelloc="t", pad="0.4", nodesep="0.5", ranksep="0.8"];
+  node [shape=box, style="rounded,filled", fillcolor="white", fontname="Arial", fontsize=11];
+  edge [fontname="Arial", fontsize=10];
+
+  subgraph cluster_dominio {
+    label="dominio";
+    color="#555555";
+    Catalogo [label="catalogo\nComposite | Iterator\nFlyweight | Visitor"];
+    Montagem [label="montagem\nBuilder | Decorator\nPrototype"];
+    Carrinho [label="carrinho\nCommand | Memento"];
+  }
+
+  subgraph cluster_financeiro {
+    label="financeiro";
+    color="#555555";
+    Strategy [label="strategy\nPoliticaPreco"];
+    Interpreter [label="interpreter\nRegra matemática"];
+    Bridge [label="bridge\nPagamento x Processador"];
+    Proxy [label="proxy\nGateway seguro"];
+    AdapterFinanceiro [label="adapter\nPedido -> JSON"];
+  }
+
+  subgraph cluster_atendimento {
+    label="atendimento";
+    color="#555555";
+    State [label="state\nCiclo do pedido"];
+    Observer [label="observer\nPainéis e cozinha"];
+    Chain [label="chain\nValidações"];
+    Mediator [label="mediator\nEquipe da loja"];
+    Facade [label="facade\nTotem"];
+  }
+
+  subgraph cluster_cozinha {
+    label="cozinha";
+    color="#555555";
+    Singleton [label="eventos/singleton\nCentralEventos"];
+    FactoryMethod [label="equipamentos/factorymethod\nEstações"];
+    AbstractFactory [label="combos/abstractfactory\nFamílias de combo"];
+    TemplateMethod [label="preparo/templatemethod\nReceitas"];
+  }
+
+  Integracao [label="integracao.entrega.adapter\nParceiro externo"];
+
+  Catalogo -> Montagem [label="cliente escolhe"];
+  Montagem -> Carrinho [label="adiciona"];
+  Carrinho -> Facade [label="checkout"];
+  Facade -> Chain [label="valida"];
+  Chain -> Strategy [label="calcula"];
+  Strategy -> Interpreter [label="regra"];
+  Strategy -> Bridge [label="cobra"];
+  Bridge -> Proxy [label="autoriza"];
+  Proxy -> AdapterFinanceiro [label="envia dados"];
+  Facade -> State [label="abre pedido"];
+  State -> Observer [label="notifica"];
+  Observer -> Mediator [label="coordena"];
+  Mediator -> Singleton [label="evento"];
+  Singleton -> FactoryMethod [label="despacha estação"];
+  FactoryMethod -> AbstractFactory [label="seleciona combo"];
+  AbstractFactory -> TemplateMethod [label="prepara"];
+  TemplateMethod -> Integracao [label="entrega"];
+}
