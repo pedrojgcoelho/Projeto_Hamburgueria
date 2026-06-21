@@ -1,62 +1,479 @@
-digraph HamburgueriaV4 {
-  graph [rankdir=LR, bgcolor="white", fontsize=18, fontname="Arial", label="Hamburgueria - Organização por Domínio e Padrões GoF", labelloc="t", pad="0.4", nodesep="0.5", ranksep="0.8"];
-  node [shape=box, style="rounded,filled", fillcolor="white", fontname="Arial", fontsize=11];
-  edge [fontname="Arial", fontsize=10];
-
-  subgraph cluster_dominio {
-    label="dominio";
-    color="#555555";
-    Catalogo [label="catalogo\nComposite | Iterator\nFlyweight | Visitor"];
-    Montagem [label="montagem\nBuilder | Decorator\nPrototype"];
-    Carrinho [label="carrinho\nCommand | Memento"];
-  }
-
-  subgraph cluster_financeiro {
-    label="financeiro";
-    color="#555555";
-    Strategy [label="strategy\nPoliticaPreco"];
-    Interpreter [label="interpreter\nRegra matemática"];
-    Bridge [label="bridge\nPagamento x Processador"];
-    Proxy [label="proxy\nGateway seguro"];
-    AdapterFinanceiro [label="adapter\nPedido -> JSON"];
-  }
+digraph HamburgueriaCompleta {
+  graph [rankdir=LR, bgcolor="white", fontname="Arial", fontsize=26, labelloc="t", label="Hamburgueria - Arquitetura Completa por Domínio e Padrões GoF", pad="0.5", nodesep="0.35", ranksep="0.7", splines=true, overlap=false, concentrate=false, size="60,22!", ratio="fill"];
+  node [shape=record, style="rounded,filled", fillcolor="#F1F0FF", color="#4E4B73", fontname="Arial", fontsize=9, margin="0.06,0.04"];
+  edge [fontname="Arial", fontsize=8, color="#404040", arrowsize="0.65"];
 
   subgraph cluster_atendimento {
-    label="atendimento";
+    label="<<package>>\natendimento";
+    style="rounded,filled";
+    fillcolor="#E8F0FE";
     color="#555555";
-    State [label="state\nCiclo do pedido"];
-    Observer [label="observer\nPainéis e cozinha"];
-    Chain [label="chain\nValidações"];
-    Mediator [label="mediator\nEquipe da loja"];
-    Facade [label="facade\nTotem"];
+    fontsize=16;
+    subgraph cluster_hamburgueria_atendimento_chain {
+      label="&lt;&lt;Chain of Responsibility&gt;&gt;\\natendimento.chain";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_atendimento_chain_ContextoPedido [label="{&lt;&lt;class&gt;&gt;\nContextoPedido|+ ContextoPedido(cliente: String, quantidadeItens: int, pagamentoConfirmad...)\l+ getCliente(): String\l+ getQuantidadeItens(): int\l+ isPagamentoConfirmado(): boolean\l}"];
+      hamburgueria_atendimento_chain_ResultadoValidacao [label="{&lt;&lt;class&gt;&gt;\nResultadoValidacao|+ ok(): ResultadoValidacao\l+ erro(mensagem: String): ResultadoValidacao\l+ isValido(): boolean\l+ getMensagem(): String\l}"];
+      hamburgueria_atendimento_chain_ValidadorCarrinho [label="{&lt;&lt;class&gt;&gt;\nValidadorCarrinho|}"];
+      hamburgueria_atendimento_chain_ValidadorCliente [label="{&lt;&lt;class&gt;&gt;\nValidadorCliente|}"];
+      hamburgueria_atendimento_chain_ValidadorPagamento [label="{&lt;&lt;class&gt;&gt;\nValidadorPagamento|}"];
+      hamburgueria_atendimento_chain_ValidadorPedido [label="{&lt;&lt;class&gt;&gt;\nValidadorPedido|+ ligarCom(proximo: ValidadorPedido): ValidadorPedido\l+ validar(contexto: ContextoPedido): ResultadoValidacao\l}"];
+    }
+    subgraph cluster_hamburgueria_atendimento_facade {
+      label="&lt;&lt;Facade&gt;&gt;\\natendimento.facade";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_atendimento_facade_TotemFacade [label="{&lt;&lt;class&gt;&gt;\nTotemFacade|+ TotemFacade(carrinho: Carrinho, calculadora: CalculadoraPreco)\l+ adicionarAoPedido(hamburguer: Hamburguer): void\l+ fecharPedido(): double\l+ itensNoPedido(): int\l}"];
+    }
+    subgraph cluster_hamburgueria_atendimento_mediator {
+      label="&lt;&lt;Mediator&gt;&gt;\\natendimento.mediator";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_atendimento_mediator_Atendente [label="{&lt;&lt;class&gt;&gt;\nAtendente|+ Atendente(nome: String, mediador: MediadorLoja)\l+ funcao(): String\l}"];
+      hamburgueria_atendimento_mediator_Chapeiro [label="{&lt;&lt;class&gt;&gt;\nChapeiro|+ Chapeiro(nome: String, mediador: MediadorLoja)\l+ funcao(): String\l}"];
+      hamburgueria_atendimento_mediator_Entregador [label="{&lt;&lt;class&gt;&gt;\nEntregador|+ Entregador(nome: String, mediador: MediadorLoja)\l+ funcao(): String\l}"];
+      hamburgueria_atendimento_mediator_Funcionario [label="{&lt;&lt;class&gt;&gt;\nFuncionario|+ getNome(): String\l+ enviar(mensagem: String): void\l}"];
+      hamburgueria_atendimento_mediator_MediadorLoja [label="{&lt;&lt;class&gt;&gt;\nMediadorLoja|+ avisar(origem: Funcionario, mensagem: String): void\l+ getMensagens(): List&lt;String&gt;\l}"];
+    }
+    subgraph cluster_hamburgueria_atendimento_observer {
+      label="&lt;&lt;Observer&gt;&gt;\\natendimento.observer";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_atendimento_observer_MonitorCozinha [label="{&lt;&lt;class&gt;&gt;\nMonitorCozinha|+ atualizar(codigoPedido: String, status: String): void\l+ getPedidoAtual(): String\l}"];
+      hamburgueria_atendimento_observer_ObservadorPedido [label="{&lt;&lt;interface&gt;&gt;\nObservadorPedido|}"];
+      hamburgueria_atendimento_observer_PainelCliente [label="{&lt;&lt;class&gt;&gt;\nPainelCliente|+ atualizar(codigoPedido: String, status: String): void\l+ getUltimaMensagem(): String\l}"];
+      hamburgueria_atendimento_observer_PedidoObservavel [label="{&lt;&lt;class&gt;&gt;\nPedidoObservavel|+ PedidoObservavel(codigo: String)\l+ adicionarObservador(observador: ObservadorPedido): void\l+ alterarStatus(status: String): void\l+ getStatus(): String\l+ quantidadeObservadores(): int\l}"];
+    }
+    subgraph cluster_hamburgueria_atendimento_state {
+      label="&lt;&lt;State&gt;&gt;\\natendimento.state";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_atendimento_state_EstadoEmEntrega [label="{&lt;&lt;class&gt;&gt;\nEstadoEmEntrega|+ proximo(pedido: PedidoAtendimento): void\l+ cancelar(pedido: PedidoAtendimento): void\l+ nome(): String\l}"];
+      hamburgueria_atendimento_state_EstadoEmPreparo [label="{&lt;&lt;class&gt;&gt;\nEstadoEmPreparo|+ proximo(pedido: PedidoAtendimento): void\l+ cancelar(pedido: PedidoAtendimento): void\l+ nome(): String\l}"];
+      hamburgueria_atendimento_state_EstadoFinalizado [label="{&lt;&lt;class&gt;&gt;\nEstadoFinalizado|+ EstadoFinalizado(nome: String)\l+ proximo(pedido: PedidoAtendimento): void\l+ cancelar(pedido: PedidoAtendimento): void\l+ nome(): String\l}"];
+      hamburgueria_atendimento_state_EstadoPedido [label="{&lt;&lt;interface&gt;&gt;\nEstadoPedido|}"];
+      hamburgueria_atendimento_state_EstadoPronto [label="{&lt;&lt;class&gt;&gt;\nEstadoPronto|+ proximo(pedido: PedidoAtendimento): void\l+ cancelar(pedido: PedidoAtendimento): void\l+ nome(): String\l}"];
+      hamburgueria_atendimento_state_EstadoRecebido [label="{&lt;&lt;class&gt;&gt;\nEstadoRecebido|+ proximo(pedido: PedidoAtendimento): void\l+ cancelar(pedido: PedidoAtendimento): void\l+ nome(): String\l}"];
+      hamburgueria_atendimento_state_PedidoAtendimento [label="{&lt;&lt;class&gt;&gt;\nPedidoAtendimento|+ PedidoAtendimento(codigo: String)\l+ avancar(): void\l+ cancelar(): void\l+ getStatus(): String\l+ getCodigo(): String\l}"];
+    }
   }
 
   subgraph cluster_cozinha {
-    label="cozinha";
+    label="<<package>>\ncozinha";
+    style="rounded,filled";
+    fillcolor="#EEF8F0";
     color="#555555";
-    Singleton [label="eventos/singleton\nCentralEventos"];
-    FactoryMethod [label="equipamentos/factorymethod\nEstações"];
-    AbstractFactory [label="combos/abstractfactory\nFamílias de combo"];
-    TemplateMethod [label="preparo/templatemethod\nReceitas"];
+    fontsize=16;
+    subgraph cluster_hamburgueria_cozinha_combos_abstractfactory {
+      label="&lt;&lt;Abstract Factory&gt;&gt;\\ncozinha.combos.abstractfactory";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_cozinha_combos_abstractfactory_Acompanhamento [label="{&lt;&lt;interface&gt;&gt;\nAcompanhamento|}"];
+      hamburgueria_cozinha_combos_abstractfactory_BatataRustica [label="{&lt;&lt;class&gt;&gt;\nBatataRustica|+ tipo(): String\l}"];
+      hamburgueria_cozinha_combos_abstractfactory_CarneArtesanal [label="{&lt;&lt;class&gt;&gt;\nCarneArtesanal|+ tipo(): String\l}"];
+      hamburgueria_cozinha_combos_abstractfactory_CarneSmash [label="{&lt;&lt;class&gt;&gt;\nCarneSmash|+ tipo(): String\l}"];
+      hamburgueria_cozinha_combos_abstractfactory_ComboArtesanalFactory [label="{&lt;&lt;class&gt;&gt;\nComboArtesanalFactory|+ criarPao(): Pao\l+ criarProteina(): Proteina\l+ criarAcompanhamento(): Acompanhamento\l}"];
+      hamburgueria_cozinha_combos_abstractfactory_ComboFactory [label="{&lt;&lt;interface&gt;&gt;\nComboFactory|}"];
+      hamburgueria_cozinha_combos_abstractfactory_ComboSmashFactory [label="{&lt;&lt;class&gt;&gt;\nComboSmashFactory|+ criarPao(): Pao\l+ criarProteina(): Proteina\l+ criarAcompanhamento(): Acompanhamento\l}"];
+      hamburgueria_cozinha_combos_abstractfactory_OnionRings [label="{&lt;&lt;class&gt;&gt;\nOnionRings|+ tipo(): String\l}"];
+      hamburgueria_cozinha_combos_abstractfactory_Pao [label="{&lt;&lt;interface&gt;&gt;\nPao|}"];
+      hamburgueria_cozinha_combos_abstractfactory_PaoAustraliano [label="{&lt;&lt;class&gt;&gt;\nPaoAustraliano|+ tipo(): String\l}"];
+      hamburgueria_cozinha_combos_abstractfactory_PaoBrioche [label="{&lt;&lt;class&gt;&gt;\nPaoBrioche|+ tipo(): String\l}"];
+      hamburgueria_cozinha_combos_abstractfactory_Proteina [label="{&lt;&lt;interface&gt;&gt;\nProteina|}"];
+    }
+    subgraph cluster_hamburgueria_cozinha_equipamentos_factorymethod {
+      label="&lt;&lt;Factory Method&gt;&gt;\\ncozinha.equipamentos.factorymethod";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_cozinha_equipamentos_factorymethod_Chapa [label="{&lt;&lt;class&gt;&gt;\nChapa|+ nome(): String\l+ operar(item: String): String\l}"];
+      hamburgueria_cozinha_equipamentos_factorymethod_Equipamento [label="{&lt;&lt;interface&gt;&gt;\nEquipamento|}"];
+      hamburgueria_cozinha_equipamentos_factorymethod_EstacaoBebidas [label="{&lt;&lt;class&gt;&gt;\nEstacaoBebidas|}"];
+      hamburgueria_cozinha_equipamentos_factorymethod_EstacaoFrituras [label="{&lt;&lt;class&gt;&gt;\nEstacaoFrituras|}"];
+      hamburgueria_cozinha_equipamentos_factorymethod_EstacaoGrelhados [label="{&lt;&lt;class&gt;&gt;\nEstacaoGrelhados|}"];
+      hamburgueria_cozinha_equipamentos_factorymethod_EstacaoPreparo [label="{&lt;&lt;class&gt;&gt;\nEstacaoPreparo|+ preparar(item: String): String\l}"];
+      hamburgueria_cozinha_equipamentos_factorymethod_Fritadeira [label="{&lt;&lt;class&gt;&gt;\nFritadeira|+ nome(): String\l+ operar(item: String): String\l}"];
+      hamburgueria_cozinha_equipamentos_factorymethod_Liquidificador [label="{&lt;&lt;class&gt;&gt;\nLiquidificador|+ nome(): String\l+ operar(item: String): String\l}"];
+    }
+    subgraph cluster_hamburgueria_cozinha_eventos_singleton {
+      label="&lt;&lt;Singleton&gt;&gt;\\ncozinha.eventos.singleton";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_cozinha_eventos_singleton_CentralEventos [label="{&lt;&lt;class&gt;&gt;\nCentralEventos|+ getInstancia(): CentralEventos\l+ registrar(ouvinte: OuvinteEvento): void\l+ publicar(evento: Evento): void\l+ getUltimoEvento(): Evento\l+ quantidadeOuvintes(): int\l}"];
+      hamburgueria_cozinha_eventos_singleton_Evento [label="{&lt;&lt;class&gt;&gt;\nEvento|+ Evento(tipo: String, conteudo: String)\l+ getTipo(): String\l+ getConteudo(): String\l}"];
+      hamburgueria_cozinha_eventos_singleton_OuvinteEvento [label="{&lt;&lt;interface&gt;&gt;\nOuvinteEvento|}"];
+    }
+    subgraph cluster_hamburgueria_cozinha_preparo_templatemethod {
+      label="&lt;&lt;Template Method&gt;&gt;\\ncozinha.preparo.templatemethod";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_cozinha_preparo_templatemethod_PreparoBatata [label="{&lt;&lt;class&gt;&gt;\nPreparoBatata|}"];
+      hamburgueria_cozinha_preparo_templatemethod_PreparoBebida [label="{&lt;&lt;class&gt;&gt;\nPreparoBebida|}"];
+      hamburgueria_cozinha_preparo_templatemethod_PreparoHamburguer [label="{&lt;&lt;class&gt;&gt;\nPreparoHamburguer|}"];
+      hamburgueria_cozinha_preparo_templatemethod_PreparoTemplate [label="{&lt;&lt;class&gt;&gt;\nPreparoTemplate|+ executar(item: String): List&lt;String&gt;\l}"];
+    }
   }
 
-  Integracao [label="integracao.entrega.adapter\nParceiro externo"];
+  subgraph cluster_dominio {
+    label="<<package>>\ndominio";
+    style="rounded,filled";
+    fillcolor="#F4F0FF";
+    color="#555555";
+    fontsize=16;
+    subgraph cluster_hamburgueria_dominio_carrinho_command {
+      label="&lt;&lt;Command&gt;&gt;\\ndominio.carrinho.command";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_dominio_carrinho_command_AdicionarProdutoCommand [label="{&lt;&lt;class&gt;&gt;\nAdicionarProdutoCommand|+ AdicionarProdutoCommand(carrinho: Carrinho, item: Hamburguer)\l+ executar(): void\l+ desfazer(): void\l}"];
+      hamburgueria_dominio_carrinho_command_ComandoCarrinho [label="{&lt;&lt;interface&gt;&gt;\nComandoCarrinho|}"];
+      hamburgueria_dominio_carrinho_command_LimparCarrinhoCommand [label="{&lt;&lt;class&gt;&gt;\nLimparCarrinhoCommand|+ LimparCarrinhoCommand(carrinho: Carrinho)\l+ executar(): void\l+ desfazer(): void\l}"];
+      hamburgueria_dominio_carrinho_command_RemoverUltimoProdutoCommand [label="{&lt;&lt;class&gt;&gt;\nRemoverUltimoProdutoCommand|+ RemoverUltimoProdutoCommand(carrinho: Carrinho)\l+ executar(): void\l+ desfazer(): void\l}"];
+    }
+    subgraph cluster_hamburgueria_dominio_carrinho_memento {
+      label="&lt;&lt;Memento&gt;&gt;\\ndominio.carrinho.memento";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_dominio_carrinho_memento_CarrinhoMemento [label="{&lt;&lt;class&gt;&gt;\nCarrinhoMemento|+ CarrinhoMemento(itens: List&lt;Hamburguer&gt;)\l+ getItens(): List&lt;Hamburguer&gt;\l+ quantidadeSalva(): int\l}"];
+      hamburgueria_dominio_carrinho_memento_HistoricoCarrinho [label="{&lt;&lt;class&gt;&gt;\nHistoricoCarrinho|+ executar(comando: ComandoCarrinho): void\l+ desfazerUltimo(): void\l+ tamanho(): int\l}"];
+    }
+    subgraph cluster_hamburgueria_dominio_carrinho_modelo {
+      label="&lt;&lt;Modelo de domínio&gt;&gt;\\ndominio.carrinho.modelo";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_dominio_carrinho_modelo_Carrinho [label="{&lt;&lt;class&gt;&gt;\nCarrinho|+ adicionar(item: Hamburguer): void\l+ removerUltimo(): Hamburguer\l+ limpar(): void\l+ total(): double\l+ tamanho(): int\l}"];
+    }
+    subgraph cluster_hamburgueria_dominio_catalogo_composite {
+      label="&lt;&lt;Composite&gt;&gt;\\ndominio.catalogo.composite";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_dominio_catalogo_composite_ComponenteCardapio [label="{&lt;&lt;interface&gt;&gt;\nComponenteCardapio|}"];
+      hamburgueria_dominio_catalogo_composite_ItemCardapio [label="{&lt;&lt;class&gt;&gt;\nItemCardapio|+ ItemCardapio(nome: String, descricao: String, preco: double, imagem: I...)\l+ getNome(): String\l+ getPreco(): double\l+ getDescricao(): String\l+ getImagem(): ImagemProduto\l}"];
+      hamburgueria_dominio_catalogo_composite_SecaoCardapio [label="{&lt;&lt;class&gt;&gt;\nSecaoCardapio|+ SecaoCardapio(nome: String, descricao: String)\l+ getNome(): String\l+ getPreco(): double\l+ getDescricao(): String\l+ getComponentes(): List&lt;ComponenteCardapio&gt;\l}"];
+    }
+    subgraph cluster_hamburgueria_dominio_catalogo_flyweight {
+      label="&lt;&lt;Flyweight&gt;&gt;\\ndominio.catalogo.flyweight";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_dominio_catalogo_flyweight_BibliotecaImagens [label="{&lt;&lt;class&gt;&gt;\nBibliotecaImagens|+ obter(chave: String): ImagemProduto\l+ quantidadeEmCache(): int\l}"];
+      hamburgueria_dominio_catalogo_flyweight_ImagemProduto [label="{&lt;&lt;class&gt;&gt;\nImagemProduto|+ getChave(): String\l+ getConteudoBase64(): String\l}"];
+    }
+    subgraph cluster_hamburgueria_dominio_catalogo_iterator {
+      label="&lt;&lt;Iterator&gt;&gt;\\ndominio.catalogo.iterator";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_dominio_catalogo_iterator_CardapioIterator [label="{&lt;&lt;class&gt;&gt;\nCardapioIterator|+ CardapioIterator(raiz: ComponenteCardapio)\l+ hasNext(): boolean\l+ next(): ComponenteCardapio\l}"];
+    }
+    subgraph cluster_hamburgueria_dominio_catalogo_visitor {
+      label="&lt;&lt;Visitor&gt;&gt;\\ndominio.catalogo.visitor";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_dominio_catalogo_visitor_ListadorCardapioVisitor [label="{&lt;&lt;class&gt;&gt;\nListadorCardapioVisitor|+ visitarItem(item: ItemCardapio): void\l+ visitarSecao(secao: SecaoCardapio): void\l+ getNomes(): List&lt;String&gt;\l}"];
+      hamburgueria_dominio_catalogo_visitor_TotalizadorCardapioVisitor [label="{&lt;&lt;class&gt;&gt;\nTotalizadorCardapioVisitor|+ visitarItem(item: ItemCardapio): void\l+ visitarSecao(secao: SecaoCardapio): void\l+ getTotal(): double\l+ getSecoes(): int\l}"];
+      hamburgueria_dominio_catalogo_visitor_VisitanteCardapio [label="{&lt;&lt;interface&gt;&gt;\nVisitanteCardapio|}"];
+    }
+    subgraph cluster_hamburgueria_dominio_montagem_builder {
+      label="&lt;&lt;Builder&gt;&gt;\\ndominio.montagem.builder";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_dominio_montagem_builder_HamburguerBuilder [label="{&lt;&lt;class&gt;&gt;\nHamburguerBuilder|+ chamado(nome: String): HamburguerBuilder\l+ comPao(pao: String): HamburguerBuilder\l+ comProteina(proteina: String): HamburguerBuilder\l+ comQueijo(queijo: String): HamburguerBuilder\l+ comSalada(salada: String): HamburguerBuilder\l}"];
+      hamburgueria_dominio_montagem_builder_HamburguerPersonalizado [label="{&lt;&lt;class&gt;&gt;\nHamburguerPersonalizado|+ getNome(): String\l+ getPao(): String\l+ getProteina(): String\l+ getQueijo(): String\l+ getSaladas(): List&lt;String&gt;\l}"];
+    }
+    subgraph cluster_hamburgueria_dominio_montagem_decorator {
+      label="&lt;&lt;Decorator&gt;&gt;\\ndominio.montagem.decorator";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_dominio_montagem_decorator_AdicionalHamburguer [label="{&lt;&lt;class&gt;&gt;\nAdicionalHamburguer|+ getNome(): String\l}"];
+      hamburgueria_dominio_montagem_decorator_BaconDecorator [label="{&lt;&lt;class&gt;&gt;\nBaconDecorator|+ BaconDecorator(hamburguer: Hamburguer)\l+ getDescricao(): String\l+ getPreco(): double\l}"];
+      hamburgueria_dominio_montagem_decorator_CebolaCaramelizadaDecorator [label="{&lt;&lt;class&gt;&gt;\nCebolaCaramelizadaDecorator|+ CebolaCaramelizadaDecorator(hamburguer: Hamburguer)\l+ getDescricao(): String\l+ getPreco(): double\l}"];
+      hamburgueria_dominio_montagem_decorator_Hamburguer [label="{&lt;&lt;interface&gt;&gt;\nHamburguer|}"];
+      hamburgueria_dominio_montagem_decorator_HamburguerBase [label="{&lt;&lt;class&gt;&gt;\nHamburguerBase|+ HamburguerBase(nome: String, preco: double)\l+ getNome(): String\l+ getDescricao(): String\l+ getPreco(): double\l}"];
+      hamburgueria_dominio_montagem_decorator_MolhoEspecialDecorator [label="{&lt;&lt;class&gt;&gt;\nMolhoEspecialDecorator|+ MolhoEspecialDecorator(hamburguer: Hamburguer)\l+ getDescricao(): String\l+ getPreco(): double\l}"];
+      hamburgueria_dominio_montagem_decorator_QueijoExtraDecorator [label="{&lt;&lt;class&gt;&gt;\nQueijoExtraDecorator|+ QueijoExtraDecorator(hamburguer: Hamburguer)\l+ getDescricao(): String\l+ getPreco(): double\l}"];
+    }
+    subgraph cluster_hamburgueria_dominio_montagem_prototype {
+      label="&lt;&lt;Prototype&gt;&gt;\\ndominio.montagem.prototype";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_dominio_montagem_prototype_ComboCliente [label="{&lt;&lt;class&gt;&gt;\nComboCliente|+ ComboCliente(nome: String, hamburguer: Hamburguer, bebida: String, aco...)\l+ getNome(): String\l+ getHamburguer(): Hamburguer\l+ getBebida(): String\l+ getAcompanhamento(): String\l}"];
+      hamburgueria_dominio_montagem_prototype_ComboPrototype [label="{&lt;&lt;interface&gt;&gt;\nComboPrototype|}"];
+    }
+  }
 
-  Catalogo -> Montagem [label="cliente escolhe"];
-  Montagem -> Carrinho [label="adiciona"];
-  Carrinho -> Facade [label="checkout"];
-  Facade -> Chain [label="valida"];
-  Chain -> Strategy [label="calcula"];
-  Strategy -> Interpreter [label="regra"];
-  Strategy -> Bridge [label="cobra"];
-  Bridge -> Proxy [label="autoriza"];
-  Proxy -> AdapterFinanceiro [label="envia dados"];
-  Facade -> State [label="abre pedido"];
-  State -> Observer [label="notifica"];
-  Observer -> Mediator [label="coordena"];
-  Mediator -> Singleton [label="evento"];
-  Singleton -> FactoryMethod [label="despacha estação"];
-  FactoryMethod -> AbstractFactory [label="seleciona combo"];
-  AbstractFactory -> TemplateMethod [label="prepara"];
-  TemplateMethod -> Integracao [label="entrega"];
+  subgraph cluster_financeiro {
+    label="<<package>>\nfinanceiro";
+    style="rounded,filled";
+    fillcolor="#FFF4E5";
+    color="#555555";
+    fontsize=16;
+    subgraph cluster_hamburgueria_financeiro_adapter {
+      label="&lt;&lt;Adapter&gt;&gt;\\nfinanceiro.adapter";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_financeiro_adapter_PagamentoJsonAdapter [label="{&lt;&lt;class&gt;&gt;\nPagamentoJsonAdapter|+ PagamentoJsonAdapter(pedido: PedidoPagamento)\l+ paraJson(): String\l}"];
+      hamburgueria_financeiro_adapter_PedidoPagamento [label="{&lt;&lt;class&gt;&gt;\nPedidoPagamento|+ PedidoPagamento(codigo: String, total: double)\l+ getCodigo(): String\l+ getTotal(): double\l}"];
+    }
+    subgraph cluster_hamburgueria_financeiro_bridge {
+      label="&lt;&lt;Bridge&gt;&gt;\\nfinanceiro.bridge";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_financeiro_bridge_Pagamento [label="{&lt;&lt;class&gt;&gt;\nPagamento|+ pagar(valor: double): String\l}"];
+      hamburgueria_financeiro_bridge_PagamentoCartao [label="{&lt;&lt;class&gt;&gt;\nPagamentoCartao|+ PagamentoCartao(processador: ProcessadorPagamento)\l}"];
+      hamburgueria_financeiro_bridge_PagamentoPix [label="{&lt;&lt;class&gt;&gt;\nPagamentoPix|+ PagamentoPix(processador: ProcessadorPagamento)\l}"];
+      hamburgueria_financeiro_bridge_ProcessadorLocal [label="{&lt;&lt;class&gt;&gt;\nProcessadorLocal|+ processar(tipo: String, valor: double): String\l}"];
+      hamburgueria_financeiro_bridge_ProcessadorOnline [label="{&lt;&lt;class&gt;&gt;\nProcessadorOnline|+ processar(tipo: String, valor: double): String\l}"];
+      hamburgueria_financeiro_bridge_ProcessadorPagamento [label="{&lt;&lt;interface&gt;&gt;\nProcessadorPagamento|}"];
+    }
+    subgraph cluster_hamburgueria_financeiro_interpreter {
+      label="&lt;&lt;Interpreter&gt;&gt;\\nfinanceiro.interpreter";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_financeiro_interpreter_DivisaoExpression [label="{&lt;&lt;class&gt;&gt;\nDivisaoExpression|+ DivisaoExpression(esquerda: Expressao, direita: Expressao)\l+ interpretar(Map&lt;String, contexto: Double&gt;): double\l}"];
+      hamburgueria_financeiro_interpreter_Expressao [label="{&lt;&lt;interface&gt;&gt;\nExpressao|}"];
+      hamburgueria_financeiro_interpreter_InterpretadorRegra [label="{&lt;&lt;class&gt;&gt;\nInterpretadorRegra|+ interpretar(regra: String): Expressao\l}"];
+      hamburgueria_financeiro_interpreter_MultiplicacaoExpression [label="{&lt;&lt;class&gt;&gt;\nMultiplicacaoExpression|+ MultiplicacaoExpression(esquerda: Expressao, direita: Expressao)\l+ interpretar(Map&lt;String, contexto: Double&gt;): double\l}"];
+      hamburgueria_financeiro_interpreter_NumeroExpression [label="{&lt;&lt;class&gt;&gt;\nNumeroExpression|+ NumeroExpression(valor: double)\l+ interpretar(Map&lt;String, contexto: Double&gt;): double\l}"];
+      hamburgueria_financeiro_interpreter_SomaExpression [label="{&lt;&lt;class&gt;&gt;\nSomaExpression|+ SomaExpression(esquerda: Expressao, direita: Expressao)\l+ interpretar(Map&lt;String, contexto: Double&gt;): double\l}"];
+      hamburgueria_financeiro_interpreter_SubtracaoExpression [label="{&lt;&lt;class&gt;&gt;\nSubtracaoExpression|+ SubtracaoExpression(esquerda: Expressao, direita: Expressao)\l+ interpretar(Map&lt;String, contexto: Double&gt;): double\l}"];
+      hamburgueria_financeiro_interpreter_VariavelExpression [label="{&lt;&lt;class&gt;&gt;\nVariavelExpression|+ VariavelExpression(nome: String)\l+ interpretar(Map&lt;String, contexto: Double&gt;): double\l}"];
+    }
+    subgraph cluster_hamburgueria_financeiro_proxy {
+      label="&lt;&lt;Proxy&gt;&gt;\\nfinanceiro.proxy";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_financeiro_proxy_GatewayPagamento [label="{&lt;&lt;interface&gt;&gt;\nGatewayPagamento|}"];
+      hamburgueria_financeiro_proxy_GatewayReal [label="{&lt;&lt;class&gt;&gt;\nGatewayReal|+ autorizar(valor: double, token: String): boolean\l}"];
+      hamburgueria_financeiro_proxy_GatewaySeguroProxy [label="{&lt;&lt;class&gt;&gt;\nGatewaySeguroProxy|+ GatewaySeguroProxy(real: GatewayPagamento, tokenEsperado: String)\l+ autorizar(valor: double, token: String): boolean\l+ getTentativas(): int\l}"];
+    }
+    subgraph cluster_hamburgueria_financeiro_strategy {
+      label="&lt;&lt;Strategy&gt;&gt;\\nfinanceiro.strategy";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_financeiro_strategy_CalculadoraPreco [label="{&lt;&lt;class&gt;&gt;\nCalculadoraPreco|+ CalculadoraPreco(politica: PoliticaPreco)\l+ setPolitica(politica: PoliticaPreco): void\l+ calcular(subtotal: double): double\l}"];
+      hamburgueria_financeiro_strategy_PoliticaPreco [label="{&lt;&lt;interface&gt;&gt;\nPoliticaPreco|}"];
+      hamburgueria_financeiro_strategy_PrecoCupomFixo [label="{&lt;&lt;class&gt;&gt;\nPrecoCupomFixo|+ PrecoCupomFixo(desconto: double)\l+ aplicar(subtotal: double): double\l}"];
+      hamburgueria_financeiro_strategy_PrecoHappyHour [label="{&lt;&lt;class&gt;&gt;\nPrecoHappyHour|+ aplicar(subtotal: double): double\l}"];
+      hamburgueria_financeiro_strategy_PrecoPadrao [label="{&lt;&lt;class&gt;&gt;\nPrecoPadrao|+ aplicar(subtotal: double): double\l}"];
+    }
+  }
+
+  subgraph cluster_integracao {
+    label="<<package>>\nintegracao";
+    style="rounded,filled";
+    fillcolor="#F0F7FF";
+    color="#555555";
+    fontsize=16;
+    subgraph cluster_hamburgueria_integracao_entrega_adapter {
+      label="&lt;&lt;Adapter&gt;&gt;\\nintegracao.entrega.adapter";
+      style="rounded,filled";
+      fillcolor="#FBFBFF";
+      color="#9999BB";
+      fontsize=11;
+      hamburgueria_integracao_entrega_adapter_EntregaLegada [label="{&lt;&lt;class&gt;&gt;\nEntregaLegada|+ solicitarColeta(payload: String): String\l}"];
+      hamburgueria_integracao_entrega_adapter_EntregaParceiroAdapter [label="{&lt;&lt;class&gt;&gt;\nEntregaParceiroAdapter|+ EntregaParceiroAdapter(entregaLegada: EntregaLegada)\l+ enviar(pedido: PedidoEntrega): String\l}"];
+      hamburgueria_integracao_entrega_adapter_PedidoEntrega [label="{&lt;&lt;class&gt;&gt;\nPedidoEntrega|+ PedidoEntrega(codigo: String, endereco: String, pesoKg: double)\l+ getCodigo(): String\l+ getEndereco(): String\l+ getPesoKg(): double\l}"];
+    }
+  }
+
+  hamburgueria_atendimento_chain_ValidadorCarrinho -> hamburgueria_atendimento_chain_ValidadorPedido [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_atendimento_chain_ValidadorCarrinho -> hamburgueria_dominio_carrinho_modelo_Carrinho [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_atendimento_chain_ValidadorCliente -> hamburgueria_atendimento_chain_ValidadorPedido [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_atendimento_chain_ValidadorPagamento -> hamburgueria_atendimento_chain_ValidadorPedido [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_atendimento_chain_ValidadorPagamento -> hamburgueria_financeiro_bridge_Pagamento [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_atendimento_facade_TotemFacade -> hamburgueria_dominio_carrinho_modelo_Carrinho [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_atendimento_facade_TotemFacade -> hamburgueria_dominio_montagem_decorator_Hamburguer [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_atendimento_facade_TotemFacade -> hamburgueria_financeiro_strategy_CalculadoraPreco [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_atendimento_mediator_Atendente -> hamburgueria_atendimento_mediator_Funcionario [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_atendimento_mediator_Chapeiro -> hamburgueria_atendimento_mediator_Funcionario [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_atendimento_mediator_Entregador -> hamburgueria_atendimento_mediator_Funcionario [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_atendimento_observer_MonitorCozinha -> hamburgueria_atendimento_observer_ObservadorPedido [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_atendimento_observer_PainelCliente -> hamburgueria_atendimento_observer_ObservadorPedido [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_atendimento_state_EstadoEmEntrega -> hamburgueria_atendimento_state_EstadoPedido [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_atendimento_state_EstadoEmPreparo -> hamburgueria_atendimento_state_EstadoPedido [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_atendimento_state_EstadoFinalizado -> hamburgueria_atendimento_state_EstadoPedido [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_atendimento_state_EstadoPronto -> hamburgueria_atendimento_state_EstadoPedido [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_atendimento_state_EstadoRecebido -> hamburgueria_atendimento_state_EstadoPedido [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_cozinha_combos_abstractfactory_BatataRustica -> hamburgueria_cozinha_combos_abstractfactory_Acompanhamento [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_cozinha_combos_abstractfactory_CarneArtesanal -> hamburgueria_cozinha_combos_abstractfactory_Proteina [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_cozinha_combos_abstractfactory_CarneSmash -> hamburgueria_cozinha_combos_abstractfactory_Proteina [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_cozinha_combos_abstractfactory_ComboArtesanalFactory -> hamburgueria_cozinha_combos_abstractfactory_ComboFactory [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_cozinha_combos_abstractfactory_ComboSmashFactory -> hamburgueria_cozinha_combos_abstractfactory_ComboFactory [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_cozinha_combos_abstractfactory_OnionRings -> hamburgueria_cozinha_combos_abstractfactory_Acompanhamento [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_cozinha_combos_abstractfactory_PaoAustraliano -> hamburgueria_cozinha_combos_abstractfactory_Pao [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_cozinha_combos_abstractfactory_PaoBrioche -> hamburgueria_cozinha_combos_abstractfactory_Pao [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_cozinha_equipamentos_factorymethod_Chapa -> hamburgueria_cozinha_equipamentos_factorymethod_Equipamento [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_cozinha_equipamentos_factorymethod_EstacaoBebidas -> hamburgueria_cozinha_equipamentos_factorymethod_EstacaoPreparo [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_cozinha_equipamentos_factorymethod_EstacaoFrituras -> hamburgueria_cozinha_equipamentos_factorymethod_EstacaoPreparo [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_cozinha_equipamentos_factorymethod_EstacaoGrelhados -> hamburgueria_cozinha_equipamentos_factorymethod_EstacaoPreparo [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_cozinha_equipamentos_factorymethod_Fritadeira -> hamburgueria_cozinha_equipamentos_factorymethod_Equipamento [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_cozinha_equipamentos_factorymethod_Liquidificador -> hamburgueria_cozinha_equipamentos_factorymethod_Equipamento [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_cozinha_preparo_templatemethod_PreparoBatata -> hamburgueria_cozinha_preparo_templatemethod_PreparoTemplate [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_cozinha_preparo_templatemethod_PreparoBebida -> hamburgueria_cozinha_preparo_templatemethod_PreparoTemplate [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_cozinha_preparo_templatemethod_PreparoHamburguer -> hamburgueria_cozinha_preparo_templatemethod_PreparoTemplate [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_dominio_carrinho_command_AdicionarProdutoCommand -> hamburgueria_dominio_carrinho_command_ComandoCarrinho [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_dominio_carrinho_command_AdicionarProdutoCommand -> hamburgueria_dominio_carrinho_modelo_Carrinho [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_dominio_carrinho_command_AdicionarProdutoCommand -> hamburgueria_dominio_montagem_decorator_Hamburguer [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_dominio_carrinho_command_LimparCarrinhoCommand -> hamburgueria_dominio_carrinho_command_ComandoCarrinho [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_dominio_carrinho_command_LimparCarrinhoCommand -> hamburgueria_dominio_carrinho_memento_CarrinhoMemento [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_dominio_carrinho_command_LimparCarrinhoCommand -> hamburgueria_dominio_carrinho_modelo_Carrinho [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_dominio_carrinho_command_RemoverUltimoProdutoCommand -> hamburgueria_dominio_carrinho_command_ComandoCarrinho [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_dominio_carrinho_command_RemoverUltimoProdutoCommand -> hamburgueria_dominio_carrinho_modelo_Carrinho [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_dominio_carrinho_command_RemoverUltimoProdutoCommand -> hamburgueria_dominio_montagem_decorator_Hamburguer [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_dominio_carrinho_memento_CarrinhoMemento -> hamburgueria_dominio_montagem_decorator_Hamburguer [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_dominio_carrinho_memento_HistoricoCarrinho -> hamburgueria_dominio_carrinho_command_ComandoCarrinho [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_dominio_carrinho_modelo_Carrinho -> hamburgueria_dominio_carrinho_memento_CarrinhoMemento [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_dominio_carrinho_modelo_Carrinho -> hamburgueria_dominio_montagem_decorator_Hamburguer [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_dominio_catalogo_composite_ComponenteCardapio -> hamburgueria_dominio_catalogo_visitor_VisitanteCardapio [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_dominio_catalogo_composite_ItemCardapio -> hamburgueria_dominio_catalogo_composite_ComponenteCardapio [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_dominio_catalogo_composite_ItemCardapio -> hamburgueria_dominio_catalogo_flyweight_ImagemProduto [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_dominio_catalogo_composite_ItemCardapio -> hamburgueria_dominio_catalogo_visitor_VisitanteCardapio [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_dominio_catalogo_composite_SecaoCardapio -> hamburgueria_dominio_catalogo_composite_ComponenteCardapio [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_dominio_catalogo_composite_SecaoCardapio -> hamburgueria_dominio_catalogo_visitor_VisitanteCardapio [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_dominio_catalogo_iterator_CardapioIterator -> hamburgueria_dominio_catalogo_composite_ComponenteCardapio [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_dominio_catalogo_iterator_CardapioIterator -> hamburgueria_dominio_catalogo_composite_SecaoCardapio [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_dominio_catalogo_visitor_ListadorCardapioVisitor -> hamburgueria_dominio_catalogo_composite_ItemCardapio [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_dominio_catalogo_visitor_ListadorCardapioVisitor -> hamburgueria_dominio_catalogo_composite_SecaoCardapio [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_dominio_catalogo_visitor_ListadorCardapioVisitor -> hamburgueria_dominio_catalogo_visitor_VisitanteCardapio [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_dominio_catalogo_visitor_TotalizadorCardapioVisitor -> hamburgueria_dominio_catalogo_composite_ItemCardapio [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_dominio_catalogo_visitor_TotalizadorCardapioVisitor -> hamburgueria_dominio_catalogo_composite_SecaoCardapio [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_dominio_catalogo_visitor_TotalizadorCardapioVisitor -> hamburgueria_dominio_catalogo_visitor_VisitanteCardapio [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_dominio_catalogo_visitor_VisitanteCardapio -> hamburgueria_dominio_catalogo_composite_ItemCardapio [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_dominio_catalogo_visitor_VisitanteCardapio -> hamburgueria_dominio_catalogo_composite_SecaoCardapio [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_dominio_montagem_builder_HamburguerBuilder -> hamburgueria_cozinha_combos_abstractfactory_Pao [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_dominio_montagem_builder_HamburguerPersonalizado -> hamburgueria_dominio_montagem_decorator_Hamburguer [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_dominio_montagem_decorator_AdicionalHamburguer -> hamburgueria_dominio_montagem_decorator_Hamburguer [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_dominio_montagem_decorator_BaconDecorator -> hamburgueria_dominio_montagem_decorator_AdicionalHamburguer [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_dominio_montagem_decorator_CebolaCaramelizadaDecorator -> hamburgueria_dominio_montagem_decorator_AdicionalHamburguer [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_dominio_montagem_decorator_HamburguerBase -> hamburgueria_dominio_montagem_decorator_Hamburguer [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_dominio_montagem_decorator_MolhoEspecialDecorator -> hamburgueria_dominio_montagem_decorator_AdicionalHamburguer [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_dominio_montagem_decorator_QueijoExtraDecorator -> hamburgueria_dominio_montagem_decorator_AdicionalHamburguer [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_dominio_montagem_prototype_ComboCliente -> hamburgueria_dominio_montagem_decorator_Hamburguer [label="usa", style="dashed", color="#666666", penwidth=0.8, arrowhead="vee"];
+  hamburgueria_dominio_montagem_prototype_ComboCliente -> hamburgueria_dominio_montagem_prototype_ComboPrototype [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_financeiro_bridge_PagamentoCartao -> hamburgueria_financeiro_bridge_Pagamento [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_financeiro_bridge_PagamentoPix -> hamburgueria_financeiro_bridge_Pagamento [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_financeiro_bridge_ProcessadorLocal -> hamburgueria_financeiro_bridge_ProcessadorPagamento [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_financeiro_bridge_ProcessadorOnline -> hamburgueria_financeiro_bridge_ProcessadorPagamento [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_financeiro_interpreter_DivisaoExpression -> hamburgueria_financeiro_interpreter_Expressao [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_financeiro_interpreter_MultiplicacaoExpression -> hamburgueria_financeiro_interpreter_Expressao [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_financeiro_interpreter_NumeroExpression -> hamburgueria_financeiro_interpreter_Expressao [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_financeiro_interpreter_SomaExpression -> hamburgueria_financeiro_interpreter_Expressao [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_financeiro_interpreter_SubtracaoExpression -> hamburgueria_financeiro_interpreter_Expressao [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_financeiro_interpreter_VariavelExpression -> hamburgueria_financeiro_interpreter_Expressao [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_financeiro_proxy_GatewayReal -> hamburgueria_financeiro_proxy_GatewayPagamento [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_financeiro_proxy_GatewaySeguroProxy -> hamburgueria_financeiro_proxy_GatewayPagamento [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_financeiro_strategy_PrecoCupomFixo -> hamburgueria_financeiro_strategy_PoliticaPreco [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_financeiro_strategy_PrecoHappyHour -> hamburgueria_financeiro_strategy_PoliticaPreco [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_financeiro_strategy_PrecoPadrao -> hamburgueria_financeiro_strategy_PoliticaPreco [label="realiza/herda", style="solid", color="#333333", penwidth=1.1, arrowhead="empty"];
+  hamburgueria_atendimento_facade_TotemFacade -> hamburgueria_atendimento_chain_ValidadorPedido [label="valida checkout", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_atendimento_chain_ValidadorPedido -> hamburgueria_atendimento_chain_ContextoPedido [label="usa contexto", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_atendimento_chain_ContextoPedido -> hamburgueria_dominio_carrinho_modelo_Carrinho [label="consulta", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_atendimento_facade_TotemFacade -> hamburgueria_atendimento_state_PedidoAtendimento [label="abre pedido", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_atendimento_state_PedidoAtendimento -> hamburgueria_atendimento_state_EstadoPedido [label="estado atual", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_atendimento_observer_PedidoObservavel -> hamburgueria_atendimento_observer_ObservadorPedido [label="notifica", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_atendimento_observer_PedidoObservavel -> hamburgueria_atendimento_observer_MonitorCozinha [label="notifica cozinha", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_atendimento_observer_PedidoObservavel -> hamburgueria_atendimento_observer_PainelCliente [label="notifica cliente", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_atendimento_mediator_MediadorLoja -> hamburgueria_atendimento_mediator_Atendente [label="coordena", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_atendimento_mediator_MediadorLoja -> hamburgueria_atendimento_mediator_Chapeiro [label="coordena", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_atendimento_mediator_MediadorLoja -> hamburgueria_atendimento_mediator_Entregador [label="coordena", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_dominio_catalogo_composite_SecaoCardapio -> hamburgueria_dominio_catalogo_composite_ComponenteCardapio [label="compõe", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_dominio_catalogo_composite_ItemCardapio -> hamburgueria_dominio_catalogo_flyweight_ImagemProduto [label="usa imagem", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_dominio_catalogo_flyweight_BibliotecaImagens -> hamburgueria_dominio_catalogo_flyweight_ImagemProduto [label="reutiliza", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_dominio_catalogo_iterator_CardapioIterator -> hamburgueria_dominio_catalogo_composite_ComponenteCardapio [label="percorre", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_dominio_catalogo_visitor_VisitanteCardapio -> hamburgueria_dominio_catalogo_composite_SecaoCardapio [label="visita", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_dominio_catalogo_visitor_VisitanteCardapio -> hamburgueria_dominio_catalogo_composite_ItemCardapio [label="visita", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_dominio_montagem_builder_HamburguerBuilder -> hamburgueria_dominio_montagem_builder_HamburguerPersonalizado [label="constrói", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_dominio_montagem_decorator_AdicionalHamburguer -> hamburgueria_dominio_montagem_decorator_Hamburguer [label="decora", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_dominio_montagem_decorator_BaconDecorator -> hamburgueria_dominio_montagem_decorator_AdicionalHamburguer [label="especializa", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_dominio_montagem_decorator_QueijoExtraDecorator -> hamburgueria_dominio_montagem_decorator_AdicionalHamburguer [label="especializa", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_dominio_montagem_decorator_MolhoEspecialDecorator -> hamburgueria_dominio_montagem_decorator_AdicionalHamburguer [label="especializa", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_dominio_montagem_decorator_CebolaCaramelizadaDecorator -> hamburgueria_dominio_montagem_decorator_AdicionalHamburguer [label="especializa", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_dominio_montagem_prototype_ComboCliente -> hamburgueria_dominio_montagem_prototype_ComboPrototype [label="clona", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_dominio_carrinho_command_AdicionarProdutoCommand -> hamburgueria_dominio_carrinho_modelo_Carrinho [label="executa", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_dominio_carrinho_command_RemoverUltimoProdutoCommand -> hamburgueria_dominio_carrinho_modelo_Carrinho [label="desfaz", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_dominio_carrinho_command_LimparCarrinhoCommand -> hamburgueria_dominio_carrinho_modelo_Carrinho [label="executa", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_dominio_carrinho_modelo_Carrinho -> hamburgueria_dominio_carrinho_memento_CarrinhoMemento [label="snapshot", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_dominio_carrinho_memento_HistoricoCarrinho -> hamburgueria_dominio_carrinho_memento_CarrinhoMemento [label="armazena", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_financeiro_strategy_CalculadoraPreco -> hamburgueria_financeiro_strategy_PoliticaPreco [label="estratégia", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_financeiro_strategy_PrecoHappyHour -> hamburgueria_financeiro_strategy_PoliticaPreco [label="implementa", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_financeiro_strategy_PrecoCupomFixo -> hamburgueria_financeiro_strategy_PoliticaPreco [label="implementa", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_financeiro_interpreter_InterpretadorRegra -> hamburgueria_financeiro_interpreter_Expressao [label="interpreta", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_financeiro_interpreter_SomaExpression -> hamburgueria_financeiro_interpreter_Expressao [label="realiza", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_financeiro_interpreter_SubtracaoExpression -> hamburgueria_financeiro_interpreter_Expressao [label="realiza", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_financeiro_interpreter_MultiplicacaoExpression -> hamburgueria_financeiro_interpreter_Expressao [label="realiza", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_financeiro_interpreter_DivisaoExpression -> hamburgueria_financeiro_interpreter_Expressao [label="realiza", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_financeiro_bridge_Pagamento -> hamburgueria_financeiro_bridge_ProcessadorPagamento [label="bridge", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_financeiro_bridge_PagamentoCartao -> hamburgueria_financeiro_bridge_Pagamento [label="especializa", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_financeiro_bridge_PagamentoPix -> hamburgueria_financeiro_bridge_Pagamento [label="especializa", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_financeiro_proxy_GatewaySeguroProxy -> hamburgueria_financeiro_proxy_GatewayPagamento [label="protege", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_financeiro_proxy_GatewaySeguroProxy -> hamburgueria_financeiro_proxy_GatewayReal [label="delega", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_financeiro_adapter_PagamentoJsonAdapter -> hamburgueria_financeiro_adapter_PedidoPagamento [label="adapta", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_cozinha_eventos_singleton_CentralEventos -> hamburgueria_cozinha_eventos_singleton_OuvinteEvento [label="notifica", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_cozinha_equipamentos_factorymethod_EstacaoPreparo -> hamburgueria_cozinha_equipamentos_factorymethod_Equipamento [label="cria", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_cozinha_combos_abstractfactory_ComboFactory -> hamburgueria_cozinha_combos_abstractfactory_Pao [label="cria", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_cozinha_combos_abstractfactory_ComboFactory -> hamburgueria_cozinha_combos_abstractfactory_Proteina [label="cria", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_cozinha_combos_abstractfactory_ComboFactory -> hamburgueria_cozinha_combos_abstractfactory_Acompanhamento [label="cria", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_cozinha_preparo_templatemethod_PreparoTemplate -> hamburgueria_cozinha_preparo_templatemethod_PreparoHamburguer [label="template", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_cozinha_preparo_templatemethod_PreparoTemplate -> hamburgueria_cozinha_preparo_templatemethod_PreparoBatata [label="template", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_cozinha_preparo_templatemethod_PreparoTemplate -> hamburgueria_cozinha_preparo_templatemethod_PreparoBebida [label="template", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_integracao_entrega_adapter_EntregaParceiroAdapter -> hamburgueria_integracao_entrega_adapter_EntregaLegada [label="adapta", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+  hamburgueria_integracao_entrega_adapter_EntregaParceiroAdapter -> hamburgueria_integracao_entrega_adapter_PedidoEntrega [label="envia", style="solid", color="#111111", penwidth=1.4, arrowhead="vee"];
+
+  subgraph cluster_legenda {
+    label="LEGENDA";
+    style="rounded";
+    color="#777777";
+    LegendA [shape=plaintext, label=<
+      <TABLE BORDER="0" CELLBORDER="1" CELLSPACING="0" CELLPADDING="5">
+        <TR><TD><B>Seta sólida</B></TD><TD>Fluxo principal / associação</TD><TD><B>Seta tracejada</B></TD><TD>Dependência / uso</TD><TD><B>Triângulo</B></TD><TD>Herança ou implementação</TD></TR>
+        <TR><TD><B>Pacotes</B></TD><TD>Separação por domínio</TD><TD><B>Subpacotes</B></TD><TD>Padrão GoF aplicado</TD><TD><B>Caixas</B></TD><TD>Classes, interfaces e métodos principais</TD></TR>
+      </TABLE>
+    >];
+  }
 }
